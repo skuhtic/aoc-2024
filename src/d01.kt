@@ -9,8 +9,8 @@ fun main() {
     }.unzip()
 
     fun part1(inputLines: List<String>): Int = inputLines.process().let { lists ->
-        lists.first.sorted().zip(lists.second.sorted()).sumOf { i ->
-            abs(i.first - i.second)
+        lists.first.sorted().zip(lists.second.sorted()).sumOf { (first, second) ->
+            abs(first - second)
         }
     }
 
@@ -21,11 +21,6 @@ fun main() {
         }
     }
 
-    val testInput = d01.lines()
-    part1(testInput).checkIt(s01.first)
-    part2(testInput).checkIt(s01.second)
-
-    val input = readInput("d01")
-    part1(input).printIt("PART #1")
-    part2(input).printIt("PART #2")
+    d01.checkAll(::part1, ::part2)
+    readInput("d01").printAll(::part1, ::part2)
 }

@@ -1,14 +1,8 @@
 val d00 = """
-1
-2
-""".trimIndent()
-val s00 = 2 to 2
+""".trimIndent().lines() to (1 to 1)
 
 val d02 = """
-1
-2
-""".trimIndent()
-val s02 = 2 to 2
+""".trimIndent().lines() to (1 to 1)
 
 val d01 = """
 3   4
@@ -17,5 +11,4 @@ val d01 = """
 1   3
 3   9
 3   3
-""".trimIndent()
-val s01 = 11 to 31
+""".trimIndent().lines() to (11 to 31)
