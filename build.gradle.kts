@@ -2,6 +2,11 @@ plugins {
     kotlin("jvm") version "2.1.0"
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xnon-local-break-continue")
+        freeCompilerArgs.add("-Xwhen-guards")}
+}
 sourceSets {
     main {
         kotlin.srcDir("src")
