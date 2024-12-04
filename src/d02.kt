@@ -5,26 +5,14 @@ fun main() {
 
     fun List<Int>.isSafe(): Boolean {
         var dir: Boolean? = null
-        var lst: Int? = null
-        forEachIndexed { index, i ->
-            when {
-                index == 0 -> lst = i
-                i == lst!! -> return false
-                i > lst!! + 3 -> return false
-                i < lst!! - 3 -> return false
-                i > lst!! -> when (dir) {
-                    null -> dir = true
-                    false -> return false
-                    else -> Unit
-                }
 
-                else -> when (dir) {
-                    null -> dir = false
-                    true -> return false
-                    else -> Unit
-                }
+        println()
+        zipWithNext { a, b ->
+            when(b - a) {
+                in 1..3 -> if(dir == null) dir = true else if(dir == false) return false else Unit
+                in -3..-1 -> if(dir == null) dir = false else if(dir == true) return false else Unit
+                else -> return false
             }
-            lst = i
         }
         return true
     }
@@ -33,9 +21,7 @@ fun main() {
 
     fun part2(inputLines: List<String>): Int = inputLines.process().count { report ->
         if (report.isSafe()) true else report.indices.any {
-            val t = report.toMutableList()
-            t.removeAt(it)
-            t.isSafe()
+            report.toMutableList().apply { removeAt(it) }.isSafe()
         }
     }
 
