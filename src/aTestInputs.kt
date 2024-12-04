@@ -1,6 +1,14 @@
 val d00 = """
 """.trimIndent().lines() to (1 to 1)
 
+val d03_2 = """
+xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
+""".trimIndent().lines() to (1 to 48)
+
+val d03_1 = """
+xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
+""".trimIndent().lines() to (161 to 1)
+
 val d02 = """
 7 6 4 2 1
 1 2 7 8 9
