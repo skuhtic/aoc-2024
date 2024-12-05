@@ -1,6 +1,19 @@
 val d00 = """
 """.trimIndent().lines() to (1 to 1)
 
+val d04 = """
+MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX
+""".trimIndent().lines() to (18 to 9)
+
 val d03_2 = """
 xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
 """.trimIndent().lines() to (1 to 48)
