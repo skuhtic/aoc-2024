@@ -28,11 +28,11 @@ fun CharArray2.size2(): P2 {
     return P2(x, y)
 }
 
-inline fun CharArray2.forEachIndexed2(action: (i: Int, j: Int, c: Char) -> Unit) {
-    for (i in indices) {
-        val b = get(i)
-        for (j in b.indices) {
-            action(i, j, b[j])
+inline fun CharArray2.forEachIndexed2(action: (x: Int, y: Int, c: Char) -> Unit) {
+    for (y in indices) {
+        val b = get(y)
+        for (x in b.indices) {
+            action(x, y, b[x])
         }
     }
 }

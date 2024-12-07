@@ -2,11 +2,18 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import kotlin.io.path.Path
 import kotlin.io.path.readText
+import kotlin.time.measureTimedValue
 
 /**
  * Reads lines from the given input txt file.
  */
 fun readInput(name: String) = Path("src/inputs/$name.txt").readText().trim().lines()
+
+fun List<String>.forEachCharWith2D(block: (c: Char, x: Int, y: Int) -> Unit) = forEachIndexed { y, s ->
+    s.forEachIndexed { x, c ->
+        block(c, x, y)
+    }
+}
 
 /**
  * Converts string to md5 hash.
@@ -22,8 +29,8 @@ fun Any?.checkIt(expected: Any?, prefix: String = "") =
     check(this == expected) { "Check${" $prefix".trimEnd()} failed: $this (expected: $expected)" }
 
 fun List<String>.printAll(part1: (List<String>) -> Any?, part2: (List<String>) -> Any?) {
-    part1(this).printIt("PART #1")
-    part2(this).printIt("PART #2")
+    measureTimedValue { part1(this) }.let { (res, t) -> res.printIt("PART #1 ($t) ") }
+    measureTimedValue { part2(this) }.let { (res, t) -> res.printIt("PART #2 ($t) ") }
 }
 
 fun Pair<List<String>, Pair<Any?, Any?>>.checkAll(part1: (List<String>) -> Any?, part2: (List<String>) -> Any?) {
