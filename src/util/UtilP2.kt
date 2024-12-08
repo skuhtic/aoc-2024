@@ -1,5 +1,7 @@
 package util
 
+import forEachCharWith2D
+
 
 /**
  * (Row, Column) coordinate in 2D grid.
@@ -18,14 +20,20 @@ data class P2(val x: Int, val y: Int) {
     val diagonal get() = setOf(lu, ru, rd, ld)
     val neighbours get() = orthogonal + diagonal
 
+    operator fun unaryMinus() = P2(0 - x, 0 - y)
+
     operator fun minus(o: P2) = P2(x - o.x, y - o.y)
     operator fun plus(o: P2) = P2(x + o.x, y + o.y)
-
 }
+
+
+
+//TODO: Make P2Box - now, using P2 for this
 
 //val Pair<Int, Int>.toP2 get() = P2(first, second)
 val List<String>.sizeTo2D get() = P2(get(0).length, size)
 
+// TODO: move to boards
 operator fun P2.contains(other: P2): Boolean = (other.x >= 0 && other.y >= 0 && other.x <= x && other.y <= x)
 
 
@@ -61,61 +69,97 @@ enum class P2Move1(override val delta: P2) : P2Move {
 
 data class P2Value<T>(val pos: P2, val v: T)
 
-data class P2Board0 private constructor(
-    val data: Set<P2>,
-    val size2: P2,
-) {
-    val border: P2 = P2(size2.x-1, size2.y -1)
 
-    operator fun get(p: P2) = p in data
-    operator fun get(x: Int, y: Int) = get(P2(x, y))
+interface P2Board<T> {
+    val size: P2
+    val maxCoords: P2
 
-    operator fun contains(p: P2) = p in border
+    operator fun get(p: P2): T?
+    operator fun contains(p: P2): Boolean = p in maxCoords
 
-    companion object {
-        fun builder(size: P2, block: MutableSet<P2>.() -> Unit) = buildSet {
-            block()
-        }.let { P2Board0(it, size) }
+    fun countExisting(alsoOutside: Boolean = false): Int
 
-        fun builder(sizeX: Int, sizeY: Int, block: MutableSet<P2>.() -> Unit) = builder(P2(sizeX, sizeY), block)
+    fun forEachExisting(block: (p: P2, v: T) -> Unit)
+    fun forEachInside(block: (p: P2, v: T) -> Unit) = forEachExisting { p, v -> if (p in maxCoords) block(p, v) }
 
-        fun from(board: P2Board0, data: Set<P2> = board.data) = P2Board0(data, board.size2)
-
-        fun from(input: List<String>, char: Char) = input.let {
-            val s = it.sizeTo2D
-            val b = buildSet {
-                it.forEachIndexed { y, s ->
-                    s.forEachIndexed { x, c ->
-                        if (c == char) add(P2(x, y))
-                    }
-                }
-            }
-            P2Board0(b, s)
-        }
-
-        fun from(input: List<String>, block: (Char, Int, Int) -> Boolean) = input.let {
-            val s = it.sizeTo2D
-            val b = buildSet {
-                it.forEachIndexed { y, s ->
-                    s.forEachIndexed { x, c ->
-                        if (block(c, x, y)) add(P2(x, y))
-                    }
-                }
-            }
-            P2Board0(b, s)
-        }
-    }
+    fun printBoard(info: String): Unit
 }
 
-data class P2ValueBoard<T>(
-    val size: P2,
-    private val emptyValue: T,
-    private val board: MutableSet<P2Value<T>> = mutableSetOf()
-) {
+// TODO: apply this
+interface P2MutableBoard<T> : P2Board<T> {
+    operator fun set(p: P2, value: T): Boolean
+}
+
+
+open class P2Board0 internal constructor(
+    override val size: P2,
+    private val fields: MutableSet<P2> = mutableSetOf(), // TODO: it was emptySet() UNMUTABLE!
+) : P2MutableBoard<Boolean> {
+    override val maxCoords: P2 by lazy { P2(size.x - 1, size.y - 1) }
+
+    @Deprecated("DON'T USE: Mutable to Immutable")
+    fun getDataCopy() = fields.toSet()
+    fun copy() = P2Board0(size, fields.toSet().toMutableSet())
+
+    override operator fun get(p: P2) = p in fields
+
+    // MUTABLE
+    override operator fun set(p: P2, value: Boolean) = if (value) fields.add(p) else fields.remove(p)
+    override fun countExisting(all: Boolean): Int = if (all) fields.size else fields.count { it in maxCoords }
+
+    override fun forEachExisting(block: (p: P2, v: Boolean) -> Unit) = fields.forEach { p -> block(p, true) }
+
     companion object {
-//        fun <T> from(emptyValue: T, input: List<String>) = input.let {
-//            val s = ()
-//        }
+        fun builder(size: P2, block: MutableSet<P2>.() -> Unit) = P2Board0(size, mutableSetOf<P2>().apply { block() })
+        fun builder(sizeX: Int, sizeY: Int, block: MutableSet<P2>.() -> Unit) = builder(P2(sizeX, sizeY), block)
+        fun from(board: P2Board0, data: MutableSet<P2> = board.fields) = P2Board0(board.size, data)
+
+        fun from(input: List<String>, char: Char) = builder(input.sizeTo2D) {
+            input.forEachCharWith2D { c, x, y -> add(P2(x, y)) }
+        }
+
+        fun from(input: List<String>, block: (Char, Int, Int) -> Boolean) = builder(input.sizeTo2D) {
+            input.forEachCharWith2D { c, x, y -> add(P2(x, y)) }
+        }
+    }
+
+    override fun printBoard(info: String): Unit = CharDraw(size, '.').run {
+        fields.forEach { if (it in maxCoords) draw(it, '#') }
+        drawIt(info)
+    }
+
+}
+
+
+class P2ValueBoard<T> internal constructor(
+    override val size: P2,
+    private val emptyValue: T?,
+    val fields: Map<P2, T>
+) : P2Board<T> {
+    override val maxCoords: P2 by lazy { P2(size.x - 1, size.y - 1) }
+    val data: Map<P2, T> get() = fields
+
+    override fun get(p: P2): T? = fields.getOrDefault(p, emptyValue)
+
+    override fun countExisting(all: Boolean): Int = if (all) fields.size else fields.count { it.key in maxCoords }
+
+    override fun forEachExisting(block: (p: P2, v: T) -> Unit): Unit = fields.forEach { (p, v) -> block(p, v) }
+
+    companion object {
+        fun <T> builder(size: P2, emptyValue: T? = null, block: MutableMap<P2, T>.() -> Unit): P2ValueBoard<T> =
+            P2ValueBoard(size, emptyValue, buildMap { block() })
+
+//        fun <T> from(board: P2ValueBoard<T>, emptyValue: T?, data: Map<P2, T> = board.data): P2ValueBoard<T> =
+//            P2ValueBoard(board.size, emptyValue, data)
+
+        fun from(input: List<String>, emptyValue: Char?): P2ValueBoard<Char> = builder(input.sizeTo2D, emptyValue) {
+            input.forEachCharWith2D { c, x, y -> if (c != emptyValue) put(P2(x, y), c) }
+        }
+    }
+
+    override fun printBoard(info: String): Unit = CharDraw(size, '.').run {
+        fields.forEach { if (it.key in maxCoords) draw(it.key, it.value.toString().first()) }
+        drawIt(info)
     }
 }
 

@@ -3,7 +3,7 @@ import util.*
 import util.P2Orthogonal1.*
 
 fun main() {
-    data class GuardGallivant2(
+    data class GuardGallivant(
         val obstacles: P2Board0,
         val guard: P2DirOrthogonal,
     ) {
@@ -12,15 +12,17 @@ fun main() {
             obstacleAdded: P2? = null,
             start: P2DirOrthogonal = guard
         ) = sequence<P2DirOrthogonal> {
-            val boardVariant = if (obstacleAdded == null) obstacles else
-                P2Board0.from(obstacles, obstacles.data + obstacleAdded)
+            val boardVariant = if (obstacleAdded == null) obstacles else {
+                obstacles.copy().apply { set(obstacleAdded, true) }
+            }
             var gpd = start
             yield(gpd)
             while (true) {
                 val next = gpd.strait()
                 if (next.pos !in boardVariant) {
                     break
-                } else if (next.pos in boardVariant.data) {
+//                } else if (next.pos in boardVariant.data) {
+                } else if (boardVariant[next.pos]) {
                     gpd = gpd.rotateRight()
                     yield(gpd)
                 } else {
@@ -31,7 +33,7 @@ fun main() {
         }
     }
 
-    fun List<String>.process2(): GuardGallivant2 {
+    fun List<String>.process2(): GuardGallivant {
         var g: P2DirOrthogonal? = null
         val b = P2Board0.builder(sizeTo2D) {
             forEachCharWith2D { c, x, y ->
@@ -42,12 +44,12 @@ fun main() {
                 }
             }
         }
-        return GuardGallivant2(b, g!!)
+        return GuardGallivant(b, g!!)
     }
 
     fun part1(inputLines: List<String>): Int = inputLines.process2().initPath.distinctBy { it.pos }.count()
 
-    fun CoroutineScope.isLoop(gg: GuardGallivant2, addedObstacle: P2) = async {
+    fun CoroutineScope.isLoop(gg: GuardGallivant, addedObstacle: P2) = async {
         gg.initPath.firstOrNull { it.destination == addedObstacle }?.let { start ->
             require(start.destination == addedObstacle)
             val visited = mutableListOf<P2DirOrthogonal>()

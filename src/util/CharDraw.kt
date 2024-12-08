@@ -1,5 +1,6 @@
 package util
 
+// TODO: Optimize for memory and performance
 class CharDraw(val size: P2, val back:Char) {
     val screen = List(size = size.y) { back.toString().repeat(size.x).toCharArray() }
 
@@ -24,8 +25,8 @@ class CharDraw(val size: P2, val back:Char) {
     }
 
     companion object {
-        fun fromP2Board0(b :P2Board0) = CharDraw(b.size2, '.').apply {
-            draw(b.data, '#')
+        fun fromP2Board0(b :P2Board0) = CharDraw(b.size, '.').apply {
+            draw(b.getDataCopy(), '#')
         }
     }
 }
